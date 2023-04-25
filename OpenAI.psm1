@@ -67,4 +67,46 @@ Function New-AIImage {
         $Quantity = $Quantity - 1
     }
 }
-Export-ModuleMember -Function "New-AIImage"
+Function New-AICompletion {
+<#
+ .SYNOPSIS
+   Used to Create AI Completion Requests
+
+ .DESCRIPTION
+   Generates AI Completion Requests utilizing the OpenAI framework API
+
+ .EXAMPLE
+   New-AICompletion -APIKey XXXXXXXXXXXXXXXXXXXXXXX -Query "Story about Cat and Ball"
+
+ .PARAMETER Query
+   The quwry used to generate the AI Completion
+
+ .PARAMETER APIKey
+   Your OpenAI API Key that can be obtained from https://beta.openai.com/
+
+ .NOTES
+   Author: Ryan Bowen
+   Date:   December 29, 2022
+#>
+    Param (
+    [Parameter(Mandatory=$true, ValueFromPipeline = $true)]
+    [String]$Query,
+    [Parameter(Mandatory=$true, ValueFromPipeline = $true)]
+    [String]$APIKey
+    )
+    $url = "https://api.openai.com/v1/completions"
+    $method = "POST"
+    $content = "application/json"
+    $body = @{
+        'model' = 'text-davinci-003'
+        'prompt' = $Query
+        'max_tokens' = 2000
+        "temperature" = 0.1
+        "top_p" = 1
+        "frequency_penalty" = 0.2
+        "presence_penalty" = 0} | ConvertTo-Json
+    $header = @{Authorization = "Bearer $APIKey"}
+    $answer = (Invoke-RestMethod -ContentType $content -Method $method -Uri $url -Headers $header -Body $body)
+    [string]$answer.choices.text -replace "\n","`n"
+}
+Export-ModuleMember -Function "New-AIImage","New-AICompletion"
